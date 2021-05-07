@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # folddup_m.py: finds and returns duplicate folders. multithreaded, with some optimizations.
 

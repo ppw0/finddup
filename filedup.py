@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # filedup.py: finds duplicate files. based on calculating MD5 hashes, with special thanks to Andres
 # Torres: https://www.pythoncentral.io/finding-duplicate-files-with-python/
