@@ -1,51 +1,50 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# folddup.py: finds duplicate folders in current directory.
+# folddup.py
 
+import filecmp
+import group
+import itertools
 import os
 
-# define folder duplicate function
-import filecmp
-def folderdup(f1,f2):
-	try:
-		fcmp = filecmp.dircmp(f1,f2)
-		if any([len(fcmp.left_only),len(fcmp.right_only),len(fcmp.funny_files)]:
-			return False
-		(_, mismatch, errors) =  filecmp.cmpfiles(f1,f2,fcmp.common_files,shallow=False)
-		if any([len(mismatch),len(errors)]):
-			return False
-		for cf in fcmp.common_dirs:
-			if not (folderdup((os.path.join(f1,cf),os.path.join(f2,cf)))):
-				return False
-		return True
-	except PermissionError:
-		return False
+def folddup(f1,f2):
+    try:
+        dcmp = filecmp.dircmp(f1,f2)
+        if any([len(dcmp.left_only),len(dcmp.right_only),len(dcmp.funny_files)]):
+            return False
+        (_, mismatch, errors) = filecmp.cmpfiles(f1,f2,dcmp.common_files,shallow=False)
+        if any([len(mismatch),len(errors)]):
+            return False
+        for cf in dcmp.common_dirs:
+            if not folddup(os.path.join(f1,cf),os.path.join(f2,cf)):
+                return False
+        return True
+    except FileNotFoundError:
+        return False
+    except PermissionError:
+        return False
 
-# get list of folders and generate unordered folder pairs
+print('''
+Subfolders to find and compare:
 
-# first-level depth version
-import itertools
-import glob
-pairs = itertools.combinations([p[:-1] for p in glob.glob('*/')],2)
+(1) All of them
+(2) Only those at the first level
+(3) Only those at the lowest level
 
-# least efficient (all-to-all) version
+(Files with identical content but different filenames will be treated as different.)
+''')
+choice = int(input("Select: "))
 
-# recursive list of all subdirectories
-#subfolders = [dirpath for dirpath, _, _ in os.walk('.')]
+if choice == 1:
+    subf = [dirpath for dirpath, _, _ in os.walk('.')]
+elif choice == 2:
+    subf = [entry for entry in os.listdir('.') if os.path.isdir(os.path.join('.',entry))]
+elif choice == 3:
+    subf = [dirpath for dirpath, dirnames, _ in os.walk('.') if not dirnames]
+else:
+    exit(1)
 
-# recursive list of all subdirectories (slightly faster)
-#for entry in os.listdir('.'):
-#    if os.path.isdir(os.path.join('.',entry)):
-#        subfolders.append(entry)
+# generate unordered folder pairs and put duplicate pairs in a list
+results = [(f1,f2) for f1,f2 in itertools.combinations(subf,2) if folddup(f1,f2)]
 
-#pairs = [pair for pair in itertools.combinations(subfolders,2)]
-
-# leaves only all-to-all comparison
-#subfolders = [dirpath for dirpath, dirnames, _ in os.walk('.') if not dirnames]
-#pairs = [pair for pair in itertools.combinations(subfolders,2)]
-
-# put duplicate pairs in a list
-dupes = [[f1,f2] for f1,f2 in pairs if folderdup(f1,f2)]
-
-import group
-group.print_groups(dupes)
+group.print_complete(results)
